@@ -26,7 +26,7 @@ app.get('/blog', function(req, res){
 
 app.get('/friends', function(req, res) {
   friend_collection.find().toArray(function(err, items){
-    res.send(items);
+    res.send(JSON.stringify({"friends":items}));
   });
 });
 
