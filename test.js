@@ -25,6 +25,8 @@ dbclient.connect("mongodb://localhost:27017/sgrdatabase_test",
   }
 );
 
+// Chained Methods: app.get().get().get().get().post().listen()
+
 app
 .get('/', function(req, res) { // Root
   res.send('Hey There');
@@ -34,6 +36,7 @@ app
 })
 .get('/friends', function(req, res) { // Get all Friends
   friend_collection.find().toArray(function(err, items){
+    // console.log("Got GET request from client: " + req.connection.remoteAddress);
     res.send(
       JSON.stringify(
         {"friends":items}
@@ -45,12 +48,12 @@ app
   var username = req.body.username;
   var email = req.body.email;
   var latitude = req.body.latitude;
-  var json_str = JSON.stringify({"username":username,"email":email,"latitude":latitude});
-
-  console.log("JSON string: \n");
+  var longitude = req.body.longitude;
+  var json_str = JSON.stringify({"username":username,"email":email,"latitude":latitude,"longitude":longitude});
+  console.log("Got POST request from client: " + req.connection.remoteAddress);
   console.log(json_str);
-  res.send('Got the request to create new friend, ' + req.body.username);
+  res.send('Request from ' + req.connection.remoteAddress + ' create new friend, ' + req.body.username);
 })
-.listen(3000, function() {
+.listen(3000, '0.0.0.0', function() {
   console.log('Listening on port 3000');
 });
