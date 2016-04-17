@@ -3,6 +3,11 @@
 // npm install express --save
 // npm install body-parser --save
 
+// Firewall Settings:
+// sudo ufw enable
+// sudo ufw allow 3000
+//
+
 var express     =   require("express"); // express js app
 var dbclient    =   require('mongodb').MongoClient; // mongo db client
 var bodyParser  =   require('body-parser'); // support json encoded bodies
@@ -36,7 +41,7 @@ app
 })
 .get('/friends', function(req, res) { // Get all Friends
   friend_collection.find().toArray(function(err, items){
-    // console.log("Got GET request from client: " + req.connection.remoteAddress);
+    console.log("Got GET request from client: " + req.connection.remoteAddress);
     res.send(
       JSON.stringify(
         {"friends":items}
