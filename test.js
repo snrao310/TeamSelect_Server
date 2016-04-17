@@ -50,6 +50,7 @@ app
   var latitude = req.body.latitude;
   var longitude = req.body.longitude;
   var json_str = JSON.stringify({"username":username,"email":email,"latitude":latitude,"longitude":longitude});
+  friend_collection.insertOne(JSON.parse(json_str));
   console.log("Got POST request from client: " + req.connection.remoteAddress);
   console.log(json_str);
   res.send('Request from ' + req.connection.remoteAddress + ' create new friend, ' + req.body.username);
