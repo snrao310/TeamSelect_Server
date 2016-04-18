@@ -6,7 +6,6 @@
 // Firewall Settings:
 // sudo ufw enable
 // sudo ufw allow 3000
-//
 
 var express     =   require("express"); // express js app
 var dbclient    =   require('mongodb').MongoClient; // mongo db client
@@ -48,6 +47,9 @@ app
       )
     );
   });
+})
+.get('/search', function(req, res) {
+  
 })
 .post('/friends', function(req, res){ // Create new friend
   var username = req.body.username;
