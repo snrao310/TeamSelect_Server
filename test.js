@@ -65,9 +65,10 @@ app
   // URL Format: http://<server>:3000/skills/ruby&python&java&android
   var skills = req.params.id;
   var aoi = req.params.id2;
-  var skillset = sills.split("&");
-  var aoiset = oai.split("&");
-  console.log(arr.toString());
+  var skillset = skills.split("&");
+  var aoiset = aoi.split("&");
+  console.log(skillset.toString());
+  res.send(aoiset.toString());
 })
 .get('/aoi/:id', function(req, res){
   // URL Format: http://<server>:3000/aoi/mobile&software&bigdata
