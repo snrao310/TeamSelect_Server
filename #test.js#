@@ -21,17 +21,23 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 // Connect to mongo db
 dbclient.connect("mongodb://localhost:27017/sgrdatabase_test",
-function(err, db) {
-  if (!err) {
-    database = db;
-    friend_collection = db.collection('friends');
+  function(err, db) {
+    if (!err) {
+      database = db;
+      friend_collection = db.collection('friends');
+    }
   }
-}
 );
 
 // Chained Methods: app.get().get().get().get().post().listen()
 
 app
+.get('/', function(req, res) { // Root
+  res.send('Hey There');
+})
+.get('/blog', function(req, res){ // Blog
+  res.send('You have reached my blog');
+})
 .get('/friends', function(req, res) { // Get all Friends
   friend_collection.find().toArray(function(err, items){
     console.log("Got GET request from client: " + req.connection.remoteAddress);
@@ -42,35 +48,13 @@ app
     );
   });
 })
-.post('/check', function(req, res) {
-  var username = req.body.username;
-  var password = req.body.password;
-  friend_collection.find({"username":username,"password":password}).toArray(function(err, items) {
-    var str = JSON.stringify(items[0]);
-    if (str != null) {
-      res.send("1");
-    } else {
-      res.send("0");
-    }
-  });
-})
 .get('/user/:id', function(req, res) {
+  // This code piece was added temporarily to show the
+  // team how to search for stuff with REST APIs
+  // - Suresh G
   username = req.params.id;
-  var str;
-
-  console.log("Got GET request from client: " + req.connection.remoteAddress);
-  console.log(items[0]);
-
-  friend_collection.find({"username":username}).toArray(function(err,items){
-    var job = items[0];
-    delete job.password;
-    delete job.latitude;
-    delete job.longitude;
-    str=JSON.stringify(job);
-  });
-
-  res.send(str);
-
+  friend_collection.find({"username":username});
+  console.log("Got get request for ID: " + req.params.id);
 })
 .post('/filter',function(req, res){
   // URL Format: http://<server>:3000/filter
@@ -83,21 +67,10 @@ app
   var aoi = req.params.id2;
 
   // Split the skillset and area of interest strings into an array
-  var skillset = skills.toString().split("&");
-  var aoiset = aoi.toString().split("&");
+  var skillset = skills.split("&");
+  var aoiset = aoi.split("&");
 
-  // Now, search the database for people with the skillset and the Area of Interest
-  friend_collection.find({
-    "skillset":{$in:skillset},
-    "aoi":{$in:aoiset}
-  }).toArray(function(err, items)
-  {
-    if (!err) {
-      console.log("Retrieved data for query");
-      res.send(JSON.stringify({"friends":items}));
-    }
-  });
-})
+  // consol})
 .post('/register', function(req, res){ // Create new friend
   var username = req.body.username;
   var password = req.body.password;
@@ -107,20 +80,17 @@ app
   var phone = req.body.phone;
   var aoi = req.body.aoi;
   var skillset = req.body.skillset;
-  var latitude=req.body.latitude;
-  var longitude=req.body.longitude;
   var json_str = JSON.stringify(
     { "username":username,
-    "password":password,
-    "name":name,
-    "location":location,
-    "mail":mail,
-    "phone":phone,
-    "aoi":aoi,
-    "skillset":skillset,
-    "latitude":latitude,
-    "longitude":longitude
-  });
+      "password":password,
+      "name":name,
+      "location":location,
+      "mail":mail,
+      "phone":phone,
+      "aoi":aoi,
+      "skillset":skillset
+    }
+  );
   friend_collection.insertOne(JSON.parse(json_str));
   console.log("Got POST request from client: " + req.connection.remoteAddress);
   console.log(json_str);
