@@ -56,10 +56,9 @@ app
 })
 .get('/user/:id', function(req, res) {
   username = req.params.id;
-  var str;
+  var str = "";
 
   console.log("Got GET request from client: " + req.connection.remoteAddress);
-  console.log(items[0]);
 
   friend_collection.find({"username":username}).toArray(function(err,items){
     var job = items[0];
