@@ -121,10 +121,22 @@ app
     "latitude":latitude,
     "longitude":longitude
   };
-  user_collection.insertOne(jsonobj);
+  user_collection.find({"username":username}).toArray(function(err, items) {
+    var str = JSON.stringify(items[0]);
+    if (str != null) {
+      res.send("Username exists");
+      console.log("The str is"+str);
+    } else {
+      console.log("The str is"+str);
+      user_collection.insertOne(jsonobj);
+      res.send("Created");
+    }
+  });
+
+
   console.log("Got POST request from client: " + req.connection.remoteAddress);
   console.log(JSON.stringify(jsonobj));
-  res.send('Request from ' + req.connection.remoteAddress + ' create new user, ' + req.body.username);
+  //res.send('Request from ' + req.connection.remoteAddress + ' create new user, ' + req.body.username);
 })
 .post('/update', function(req, res){ // Create new user
   var username = req.body.username;
