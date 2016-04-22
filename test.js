@@ -59,7 +59,7 @@ app
   var str;
 
   console.log("Got GET request from client: " + req.connection.remoteAddress);
-  console.log(items[0]);
+
 
   friend_collection.find({"username":username}).toArray(function(err,items){
     var job = items[0];
@@ -67,10 +67,9 @@ app
     delete job.latitude;
     delete job.longitude;
     str=JSON.stringify(job);
+    console.log(str);
+    res.send(str);
   });
-
-  res.send(str);
-
 })
 .post('/filter',function(req, res){
   // URL Format: http://<server>:3000/filter
@@ -109,8 +108,7 @@ app
   var skillset = req.body.skillset;
   var latitude=req.body.latitude;
   var longitude=req.body.longitude;
-  var json_str = JSON.stringify(
-    { "username":username,
+  var jsonobj = { "username":username,
     "password":password,
     "name":name,
     "location":location,
@@ -120,10 +118,61 @@ app
     "skillset":skillset,
     "latitude":latitude,
     "longitude":longitude
-  });
-  friend_collection.insertOne(JSON.parse(json_str));
+  };
+  friend_collection.insertOne(jsonobj);
   console.log("Got POST request from client: " + req.connection.remoteAddress);
-  console.log(json_str);
+  console.log(JSON.stringify(jsonobj));
+  res.send('Request from ' + req.connection.remoteAddress + ' create new friend, ' + req.body.username);
+})
+.post('/update', function(req, res){ // Create new friend
+  var username = req.body.username;
+  var jsonobj={"username":username};
+
+  var password = req.body.password;
+  var name = req.body.name;
+  var location = req.body.location;
+  var mail = req.body.mail;
+  var phone = req.body.phone;
+  var aoi = req.body.aoi;
+  var skillset = req.body.skillset;
+  var latitude=req.body.latitude;
+  var longitude=req.body.longitude;
+  var jsonobj1={$set:{}};
+  var curraoi,currskillset;
+
+  friend_collection.find({"username":username}).toArray(function(err,items){
+    curraoi=items[0]["aoi"];
+    console.log(aoi);
+    currskillset=items[0]["skillset"];
+
+    if (aoi!=null)
+      jsonobj1.$set["aoi"]=curraoi+","+aoi;
+    if (skillset!=null)
+      jsonobj1.$set["skillset"]=currskillset+","+skillset;
+
+    friend_collection.updateOne(jsonobj,jsonobj1);
+  });
+
+  if (password!=null)
+    jsonobj1.$set["password"]=password;
+    if (name!=null)
+      jsonobj1.$set["name"]=name;
+  if (location!=null){
+    jsonobj1.$set["location"]=location;
+    jsonobj1.$set["latitude"]=latitude;
+    jsonobj1.$set["longitude"]=longitude;
+  }
+  if (phone!=null)
+    jsonobj1.$set["phone"]=phone;
+  if (mail!=null)
+      jsonobj1.$set["mail"]=mail;
+
+
+
+  console.log(jsonobj);
+  friend_collection.updateOne(jsonobj,jsonobj1);
+  console.log("Got POST request from client: " + req.connection.remoteAddress);
+  console.log(jsonobj1);
   res.send('Request from ' + req.connection.remoteAddress + ' create new friend, ' + req.body.username);
 })
 .listen(3000, '0.0.0.0', function() {
