@@ -110,6 +110,7 @@ app
   var skillset = req.body.skillset;
   var latitude=req.body.latitude;
   var longitude=req.body.longitude;
+  var teamwith="";
   var jsonobj = { "username":username,
     "password":password,
     "name":name,
@@ -119,7 +120,8 @@ app
     "aoi":aoi,
     "skillset":skillset,
     "latitude":latitude,
-    "longitude":longitude
+    "longitude":longitude,
+    "teamwith":teamwith
   };
   user_collection.find({"username":username}).toArray(function(err, items) {
     var str = JSON.stringify(items[0]);
