@@ -12,7 +12,8 @@ var dbclient    =   require('mongodb').MongoClient; // mongo db client
 var bodyParser  =   require('body-parser'); // support json encoded bodies
 
 var database;
-var friend_collection;
+var user_collection;
+var team_collection;
 
 var app         =   express();
 
@@ -20,11 +21,12 @@ app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 
 // Connect to mongo db
-dbclient.connect("mongodb://localhost:27017/sgrdatabase_test",
+dbclient.connect("mongodb://localhost:27017/teamSelectDB",
 function(err, db) {
   if (!err) {
     database = db;
-    friend_collection = db.collection('friends');
+    user_collection = db.collection('users');
+    team_collection = db.collection('teams');
   }
 }
 );
@@ -32,12 +34,12 @@ function(err, db) {
 // Chained Methods: app.get().get().get().get().post().listen()
 
 app
-.get('/friends', function(req, res) { // Get all Friends
-  friend_collection.find().toArray(function(err, items){
+.get('/users', function(req, res) { // Get all users
+  user_collection.find().toArray(function(err, items){
     console.log("Got GET request from client: " + req.connection.remoteAddress);
     res.send(
       JSON.stringify(
-        {"friends":items}
+        {"users":items}
       )
     );
   });
@@ -45,7 +47,8 @@ app
 .post('/check', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
-  friend_collection.find({"username":username,"password":password}).toArray(function(err, items) {
+  console.log(username + " and " + password);
+  user_collection.find({"username":username,"password":password}).toArray(function(err, items) {
     var str = JSON.stringify(items[0]);
     if (str != null) {
       res.send("1");
@@ -61,7 +64,7 @@ app
   console.log("Got GET request from client: " + req.connection.remoteAddress);
 
 
-  friend_collection.find({"username":username}).toArray(function(err,items){
+  user_collection.find({"username":username}).toArray(function(err,items){
     var job = items[0];
     delete job.password;
     delete job.latitude;
@@ -86,18 +89,18 @@ app
   var aoiset = aoi.toString().split("&");
 
   // Now, search the database for people with the skillset and the Area of Interest
-  friend_collection.find({
+  user_collection.find({
     "skillset":{$in:skillset},
     "aoi":{$in:aoiset}
   }).toArray(function(err, items)
   {
     if (!err) {
       console.log("Retrieved data for query");
-      res.send(JSON.stringify({"friends":items}));
+      res.send(JSON.stringify({"users":items}));
     }
   });
 })
-.post('/register', function(req, res){ // Create new friend
+.post('/register', function(req, res){ // Create new user
   var username = req.body.username;
   var password = req.body.password;
   var name = req.body.name;
@@ -105,26 +108,42 @@ app
   var mail = req.body.mail;
   var phone = req.body.phone;
   var aoi = req.body.aoi;
+  var aoi_2 = aoi.toString().split(",");
   var skillset = req.body.skillset;
+  var skillset_2 = skillset.toString().split(",");
   var latitude=req.body.latitude;
   var longitude=req.body.longitude;
+  var teamwith="";
+
   var jsonobj = { "username":username,
     "password":password,
     "name":name,
     "location":location,
     "mail":mail,
     "phone":phone,
-    "aoi":aoi,
-    "skillset":skillset,
+    "aoi":aoi_2,
+    "skillset":skillset_2,
     "latitude":latitude,
     "longitude":longitude
   };
-  friend_collection.insertOne(jsonobj);
+
+  user_collection.find({"username":username}).toArray(function(err, items) {
+    var str = JSON.stringify(items[0]);
+    if (str != null) {
+      res.send("Username exists");
+      console.log("The str is"+str);
+    } else {
+      console.log("The str is"+str);
+      user_collection.insertOne(jsonobj);
+      res.send("Created");
+    }
+  });
+
   console.log("Got POST request from client: " + req.connection.remoteAddress);
   console.log(JSON.stringify(jsonobj));
-  res.send('Request from ' + req.connection.remoteAddress + ' create new friend, ' + req.body.username);
+
 })
-.post('/update', function(req, res){ // Create new friend
+.post('/update', function(req, res){ // Update user profile
   var username = req.body.username;
   var jsonobj={"username":username};
 
@@ -140,7 +159,7 @@ app
   var jsonobj1={$set:{}};
   var curraoi,currskillset;
 
-  friend_collection.find({"username":username}).toArray(function(err,items){
+  user_collection.find({"username":username}).toArray(function(err,items){
     curraoi=items[0]["aoi"];
     console.log(aoi);
     currskillset=items[0]["skillset"];
@@ -150,7 +169,7 @@ app
     if (skillset!=null)
       jsonobj1.$set["skillset"]=currskillset+","+skillset;
 
-    friend_collection.updateOne(jsonobj,jsonobj1);
+    user_collection.updateOne(jsonobj,jsonobj1);
   });
 
   if (password!=null)
@@ -167,13 +186,11 @@ app
   if (mail!=null)
       jsonobj1.$set["mail"]=mail;
 
-
-
   console.log(jsonobj);
-  friend_collection.updateOne(jsonobj,jsonobj1);
+  user_collection.updateOne(jsonobj,jsonobj1);
   console.log("Got POST request from client: " + req.connection.remoteAddress);
   console.log(jsonobj1);
-  res.send('Request from ' + req.connection.remoteAddress + ' create new friend, ' + req.body.username);
+  res.send('Request from ' + req.connection.remoteAddress + ' create new user, ' + req.body.username);
 })
 .listen(3000, '0.0.0.0', function() {
   console.log('Listening on port 3000');
