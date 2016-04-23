@@ -47,6 +47,7 @@ app
 .post('/check', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
+  console.log(username + " and " + password);
   user_collection.find({"username":username,"password":password}).toArray(function(err, items) {
     var str = JSON.stringify(items[0]);
     if (str != null) {
@@ -107,22 +108,25 @@ app
   var mail = req.body.mail;
   var phone = req.body.phone;
   var aoi = req.body.aoi;
+  var aoi_2 = aoi.toString().split(",");
   var skillset = req.body.skillset;
+  var skillset_2 = skillset.toString().split(",");
   var latitude=req.body.latitude;
   var longitude=req.body.longitude;
   var teamwith="";
+
   var jsonobj = { "username":username,
     "password":password,
     "name":name,
     "location":location,
     "mail":mail,
     "phone":phone,
-    "aoi":aoi,
-    "skillset":skillset,
+    "aoi":aoi_2,
+    "skillset":skillset_2,
     "latitude":latitude,
-    "longitude":longitude,
-    "teamwith":teamwith
+    "longitude":longitude
   };
+
   user_collection.find({"username":username}).toArray(function(err, items) {
     var str = JSON.stringify(items[0]);
     if (str != null) {
@@ -135,12 +139,11 @@ app
     }
   });
 
-
   console.log("Got POST request from client: " + req.connection.remoteAddress);
   console.log(JSON.stringify(jsonobj));
-  //res.send('Request from ' + req.connection.remoteAddress + ' create new user, ' + req.body.username);
+
 })
-.post('/update', function(req, res){ // Create new user
+.post('/update', function(req, res){ // Update user profile
   var username = req.body.username;
   var jsonobj={"username":username};
 
@@ -182,8 +185,6 @@ app
     jsonobj1.$set["phone"]=phone;
   if (mail!=null)
       jsonobj1.$set["mail"]=mail;
-
-
 
   console.log(jsonobj);
   user_collection.updateOne(jsonobj,jsonobj1);
