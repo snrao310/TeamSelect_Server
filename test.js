@@ -161,13 +161,27 @@ app
 
   user_collection.find({"username":username}).toArray(function(err,items){
     curraoi=items[0]["aoi"];
-    console.log(aoi);
     currskillset=items[0]["skillset"];
 
-    if (aoi!=null)
-      jsonobj1.$set["aoi"]=curraoi+","+aoi;
-    if (skillset!=null)
-      jsonobj1.$set["skillset"]=currskillset+","+skillset;
+    console.log(curraoi);
+    console.log("\n");
+    console.log(currskillset);
+
+    if (aoi!=null) {
+      var aoi_arr = aoi.toString().split(",");
+      for ( var i = 0; i < aoi_arr.length; i++ ) {
+        curraoi.push(aoi_arr[i]);
+      }
+      jsonobj1.$set["aoi"]=curraoi;
+    }
+
+    if (skillset!=null) {
+      var skill_arr = skillset.toString().split(",");
+      for ( var i = 0; i < skill_arr.length; i++ ) {
+        currskillset.push(skill_arr[i]);
+      }
+      jsonobj1.$set["skillset"]=currskillset;
+    }
 
     user_collection.updateOne(jsonobj,jsonobj1);
   });
