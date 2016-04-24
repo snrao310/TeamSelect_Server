@@ -113,7 +113,9 @@ app
   var skillset_2 = skillset.toString().split(",");
   var latitude=req.body.latitude;
   var longitude=req.body.longitude;
-  var teamwith="";
+  var teamwith=[];
+  var sentRequests=[];
+  var requests=[];
 
   var jsonobj = { "username":username,
     "password":password,
@@ -124,7 +126,10 @@ app
     "aoi":aoi_2,
     "skillset":skillset_2,
     "latitude":latitude,
-    "longitude":longitude
+    "longitude":longitude,
+    "teamwith":teamwith,
+    "sentRequests": sentRequests,
+    "requests":requests
   };
 
   user_collection.find({"username":username}).toArray(function(err, items) {
@@ -206,6 +211,41 @@ app
   console.log(jsonobj1);
   res.send('Request from ' + req.connection.remoteAddress + ' create new user, ' + req.body.username);
 })
+
+.post('/request',function(req,res){
+  var username1=req.body.fromUsername;
+  var username2=req.body.toUsername;
+
+  console.log("Request Body: ");
+  console.log(JSON.stringify(req.body) + "\n");
+
+  var jsonobj={"username":username1};
+  var jsonobj1={$set:{}};
+
+
+  user_collection.find({"username":username1}).toArray(function(err,items){
+    var scurreq=[];
+    scurreq=items[0]["sentRequests"];
+    //console.log(curreq);
+    scurreq.push(username2);
+    jsonobj1.$set["sentRequests"]=scurreq;
+    user_collection.updateOne(jsonobj,jsonobj1);
+  });
+
+  var jsonobj2={"username":username2};
+  var jsonobj3={$set:{}};
+
+  user_collection.find({"username":username2}).toArray(function(err,items){
+    var currer=[];
+    currer=items[0]["requests"];
+
+    currer.push(username1);
+    jsonobj3.$set["requests"]=currer;
+    user_collection.updateOne(jsonobj2,jsonobj3);
+  });
+  res.send("1");
+}
+)
 .listen(3000, '0.0.0.0', function() {
   console.log('Listening on port 3000');
 });
