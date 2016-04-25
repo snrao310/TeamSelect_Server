@@ -31,6 +31,51 @@ function(err, db) {
 }
 );
 
+var testFun=function(i,currteam2,username1){
+
+  if(i<currteam2.length){
+      user_collection.find({"username":currteam2[i]}).toArray(function(err,items3){
+        var teamjsonobj={"username":items3[0]["username"]};
+        var teamjsonobj1={$set:{}};
+        var teamscurreq=[];
+        teamscurreq=items3[0]["sentRequests"];
+        var teamcurreq=[];
+        teamcurreq=items3[0]["requests"];
+        // console.log(i+" "+teamcurreq);
+        // console.log(i+" "+teamscurreq);
+
+        var teamcurrteam=currteam2.slice();
+        teamcurrteam.push(username1);
+        var ind=teamcurrteam.indexOf(items3[0]["username"]);
+        teamcurrteam.splice(ind,1);
+        teamjsonobj1.$set["teamwith"]=teamcurrteam;
+        user_collection.updateOne(teamjsonobj,teamjsonobj1);
+
+        // console.log(i+" "+teamcurrteam);
+        for(var j=0;j<teamcurrteam.length;j++){
+          var ind=teamscurreq.indexOf(teamcurrteam[j]);
+          if(ind!=-1)
+            teamscurreq.splice(ind,1);
+        }
+        // console.log(i+" "+teamscurreq);
+        teamjsonobj1.$set["sentRequests"]=teamscurreq;
+
+        for(var j=0;j<teamcurrteam.length;j++){
+          var ind=teamcurreq.indexOf(teamcurrteam[j]);
+          if(ind!=-1)
+            teamcurreq.splice(ind,1);
+        }
+        // console.log(i+" "+teamcurreq);
+        // console.log(i+" currteam2 is  "+currteam2);
+        teamjsonobj1.$set["requests"]=teamcurreq;
+
+        user_collection.updateOne(teamjsonobj,teamjsonobj1);
+
+        testFun(i+1,currteam2,username1);
+      });
+    }
+}
+
 // Chained Methods: app.get().get().get().get().post().listen()
 
 app
@@ -246,6 +291,98 @@ app
   res.send("1");
 }
 )
+
+.post('/accept',function(req,res){
+  var username1=req.body.fromUsername;
+  var username2=req.body.toUsername;
+  //console.log(req.body);
+
+  var jsonobj={"username":username1};
+  var jsonobj1={$set:{}};
+  var jsonobj2={"username":username2};
+  var jsonobj3={$set:{}};
+
+  user_collection.find({"username":username1}).toArray(function(err,items){
+    var scurreq=[];
+    scurreq=items[0]["sentRequests"];
+    var i=scurreq.indexOf(username2);
+    scurreq.splice(i,1);
+
+    var curreq=[];
+    curreq=items[0]["requests"];
+
+    var currteam1=[];
+    currteam=items[0]["teamwith"];
+
+    user_collection.find({"username":username2}).toArray(function(err,items2){
+      var currteam2=items2[0]["teamwith"];
+      currteam2=currteam2.concat(currteam);
+      currteam2.push(username2);
+      jsonobj1.$set["teamwith"]=currteam2;
+      user_collection.updateOne(jsonobj,jsonobj1);
+      //console.log(currteam2);
+
+      for(var i=0;i<currteam2.length;i++){
+        var ind=scurreq.indexOf(currteam2[i]);
+        if(ind!=-1)
+          scurreq.splice(ind,1);
+      }
+      jsonobj1.$set["sentRequests"]=scurreq;
+
+      for(var i=0;i<currteam2.length;i++){
+        var ind=curreq.indexOf(currteam2[i]);
+        if(ind!=-1)
+        curreq.splice(ind,1);
+      }
+      jsonobj1.$set["requests"]=curreq;
+
+      user_collection.updateOne(jsonobj,jsonobj1);
+
+      testFun(0,currteam2,username1);
+
+
+      res.send("accepted");
+    });
+  });
+
+
+  // user_collection.find({"username":username2}).toArray(function(err,items){
+  //   var curreq=[];
+  //   curreq=items[0]["requests"];
+  //   var i=curreq.indexOf(username1);
+  //   curreq.splice(i,i);
+  //
+  //
+  //   var scurreq=[];
+  //   scurreq=items[0]["sentRequests"];
+  //
+  //   var currteam1=[];
+  //   currteam=items[0]["teamwith"];
+  //
+  //   user_collection.find({"username":username1}).toArray(function(err,items2){
+  //     var currteam2=items2[0]["teamwith"];
+  //     currteam2.concat(currteam);
+  //     currteam2.push(username1);
+  //     jsonobj3.$set["teamwith"]=currteam2;
+  //     user_collection.updateOne(jsonobj2,jsonobj3);
+  //
+  //     for(var i=0;i<currteam2.length;i++){
+  //       var ind=scurreq.indexOf(currteam2[i]);
+  //       scurreq.splice(ind,ind);
+  //     }
+  //     jsonobj3.$set["sentRequests"]=scurreq;
+  //
+  //     for(var i=0;i<currteam2.length;i++){
+  //       var ind=curreq.indexOf(currteam2[i]);
+  //       curreq.splice(ind,ind);
+  //     }
+  //     jsonobj3.$set["requests"]=curreq;
+  //
+  //     user_collection.updateOne(jsonobj2,jsonobj3);
+  //   });
+  // });
+
+})
 .listen(3000, '0.0.0.0', function() {
   console.log('Listening on port 3000');
 });
