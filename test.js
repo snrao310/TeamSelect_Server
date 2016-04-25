@@ -383,6 +383,39 @@ app
   // });
 
 })
+
+.post('/reject',function(req,res){
+  var username1=req.body.fromUsername;
+  var username2=req.body.toUsername;
+  //console.log(req.body);
+
+  var jsonobj={"username":username1};
+  var jsonobj1={$set:{}};
+  var jsonobj2={"username":username2};
+  var jsonobj3={$set:{}};
+
+  user_collection.find({"username":username1}).toArray(function(err,items){
+    var scurreq=[];
+    scurreq=items[0]["sentRequests"];
+    var i=scurreq.indexOf(username2);
+    scurreq.splice(i,1);
+    jsonobj1.$set["sentRequests"]=scurreq;
+    user_collection.updateOne(jsonobj,jsonobj1);
+  });
+
+  user_collection.find({"username":username2}).toArray(function(err,items){
+    var curreq=[];
+    curreq=items[0]["requests"];
+    var i=curreq.indexOf(username1);
+    curreq.splice(i,1);
+    jsonobj3.$set["requests"]=curreq;
+    user_collection.updateOne(jsonobj2,jsonobj3);
+  });
+
+  res.send("rejected");
+
+})
+
 .listen(3000, '0.0.0.0', function() {
   console.log('Listening on port 3000');
 });
