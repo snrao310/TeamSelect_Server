@@ -41,6 +41,10 @@ var testFun=function(i,currteam2,username1){
         teamscurreq=items3[0]["sentRequests"];
         var teamcurreq=[];
         teamcurreq=items3[0]["requests"];
+        var teamcurtent=[];
+        teamcurtent=items3[0]["tentative_others"];
+        var teamcurtentMine=[];
+        teamcurtentMine=items3[0]["tentative_mine"];
         // console.log(i+" "+teamcurreq);
         // console.log(i+" "+teamscurreq);
 
@@ -69,12 +73,60 @@ var testFun=function(i,currteam2,username1){
         // console.log(i+" currteam2 is  "+currteam2);
         teamjsonobj1.$set["requests"]=teamcurreq;
 
+        for(var j=0;j<teamcurrteam.length;j++){
+          var ind=teamcurtent.indexOf(teamcurrteam[j]);
+          if(ind!=-1)
+            teamcurtent.splice(ind,1);
+        }
+        teamjsonobj1.$set["tentative_others"]=teamcurtent;
+
+        for(var j=0;j<teamcurrteam.length;j++){
+          var ind=teamcurtentMine.indexOf(teamcurrteam[j]);
+          if(ind!=-1)
+            teamcurtentMine.splice(ind,1);
+        }
+        teamjsonobj1.$set["tentative_others"]=teamcurtentMine;
+
         user_collection.updateOne(teamjsonobj,teamjsonobj1);
 
         testFun(i+1,currteam2,username1);
       });
     }
 }
+
+
+var two_days= function(username1, username2){
+  var querystring = require('querystring');
+  var http = require('http');
+  var fs = require('fs');
+  var data="fromUsername="+username1+"&toUsername="+username2;
+  // Build the post string from an object
+
+  // An object of options to indicate where to post to
+  var post_options = {
+      host: 'localhost',
+      port: '3000',
+      path: '/reject',
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': Buffer.byteLength(data)
+      }
+  };
+
+  // Set up the request
+  var post_req = http.request(post_options, function(res) {
+      res.setEncoding('utf8');
+      res.on('data', function (chunk) {
+          console.log('Response: ' + chunk);
+      });
+  });
+
+  // post the data
+  post_req.write(data);
+  post_req.end();
+}
+
 
 // Chained Methods: app.get().get().get().get().post().listen()
 
@@ -161,6 +213,8 @@ app
   var teamwith=[];
   var sentRequests=[];
   var requests=[];
+  var tentative_others=[];
+  var tentative_mine=[];
 
   var jsonobj = { "username":username,
     "password":password,
@@ -174,7 +228,9 @@ app
     "longitude":longitude,
     "teamwith":teamwith,
     "sentRequests": sentRequests,
-    "requests":requests
+    "requests":requests,
+    "tentative_mine": tentative_mine,
+    "tentative_others":tentative_others
   };
 
   user_collection.find({"username":username}).toArray(function(err, items) {
@@ -308,6 +364,15 @@ app
     var i=scurreq.indexOf(username2);
     scurreq.splice(i,1);
 
+    var curtent=[];
+    curtent=items[0]["tentative_others"];
+    var i=curtent.indexOf(username2);
+    if(i!=-1)
+      curtent.splice(i,1);
+
+    var curtentMine=[];
+    curtentMine=items[0]["tentative_mine"];
+
     var curreq=[];
     curreq=items[0]["requests"];
 
@@ -335,6 +400,20 @@ app
         curreq.splice(ind,1);
       }
       jsonobj1.$set["requests"]=curreq;
+
+      for(var i=0;i<currteam2.length;i++){
+        var ind=curtent.indexOf(currteam2[i]);
+        if(ind!=-1)
+        curtent.splice(ind,1);
+      }
+      jsonobj1.$set["tentative_others"]=curtent;
+
+      for(var i=0;i<currteam2.length;i++){
+        var ind=curtentMine.indexOf(currteam2[i]);
+        if(ind!=-1)
+        curtentMine.splice(ind,1);
+      }
+      jsonobj1.$set["tentative_mine"]=curtentMine;
 
       user_collection.updateOne(jsonobj,jsonobj1);
 
@@ -400,6 +479,14 @@ app
     var i=scurreq.indexOf(username2);
     scurreq.splice(i,1);
     jsonobj1.$set["sentRequests"]=scurreq;
+
+    var curtent=[];
+    curtent=items[0]["tentative_others"];
+    var i=curtent.indexOf(username2);
+    if(i!=-1)
+      curtent.splice(i,1);
+    jsonobj1.$set["tentative_others"]=curtent;
+
     user_collection.updateOne(jsonobj,jsonobj1);
   });
 
@@ -409,11 +496,50 @@ app
     var i=curreq.indexOf(username1);
     curreq.splice(i,1);
     jsonobj3.$set["requests"]=curreq;
+
+    var curtentM=[];
+    curtentM=items[0]["tentative_mine"];
+    var i=curtentM.indexOf(username1);
+    if(i!=-1)
+      curtentM.splice(i,1);
+    jsonobj3.$set["tentative_mine"]=curtentM;
+
     user_collection.updateOne(jsonobj2,jsonobj3);
   });
 
   res.send("rejected");
+})
 
+
+.post('/tentative',function(req,res){
+  var username1=req.body.fromUsername;
+  var username2=req.body.toUsername;
+  //console.log(req.body);
+
+  var jsonobj={"username":username1};
+  var jsonobj1={$set:{}};
+  var jsonobj2={"username":username2};
+  var jsonobj3={$set:{}};
+
+  user_collection.find({"username":username1}).toArray(function(err,items){
+    var curten=[];
+    curten=items[0]["tentative_others"];
+    curten.push(username2);
+    jsonobj1.$set["tentative_others"]=curten;
+    user_collection.updateOne(jsonobj,jsonobj1);
+  });
+
+  user_collection.find({"username":username2}).toArray(function(err,items){
+    var curtent=[];
+    curtent=items[0]["tentative_mine"];
+    curtent.push(username1);
+    jsonobj3.$set["tentative_mine"]=curtent;
+    user_collection.updateOne(jsonobj2,jsonobj3);
+  });
+
+  setTimeout(function(){two_days(username1,username2);},30*1000);
+
+  res.send("tentatived");
 })
 
 .listen(3000, '0.0.0.0', function() {
