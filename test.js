@@ -542,7 +542,6 @@ app
   res.send("tentatived");
 })
 
-<<<<<<< HEAD
 .post('/makemeetrequest', function(req, res) {
   var fromUsername = req.body.fromUsername;
   var toUsername = req.body.toUsername;
