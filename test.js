@@ -542,6 +542,7 @@ app
   res.send("tentatived");
 })
 
+<<<<<<< HEAD
 .post('/makemeetrequest', function(req, res) {
   var fromUsername = req.body.fromUsername;
   var toUsername = req.body.toUsername;
@@ -600,6 +601,8 @@ app
 		}
 	});
 })
+=======
+>>>>>>> 2402316394c66e9820710dae210bea7e3bff8d11
 .listen(3000, '0.0.0.0', function() {
   console.log('Listening on port 3000');
 });
