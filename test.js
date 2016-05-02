@@ -226,6 +226,8 @@ app
     "skillset":skillset_2,
     "latitude":latitude,
     "longitude":longitude,
+	"current_latitude":latitude,
+	"current_longitude":longitude,
     "teamwith":teamwith,
     "sentRequests": sentRequests,
     "requests":requests,
@@ -582,7 +584,22 @@ app
 	console.log("Accept request received");
 	console.log(fromUsername + ", " + toUsername + "," );
 	// Now, delete the MR from the receiver's entry
-	user_collection.update({'username':toUsername},{$unset:{'mr_user':1,'mr_latitude':1,'mr_longitude':1}});
+	user_collection.update(
+		{
+			'username':toUsername
+		},
+		{
+			$unset:{
+				'mr_user':1,
+				'mr_latitude':1,
+				'mr_longitude':1
+			},
+			$set:{
+				'current_latitude':latitude,
+				'current_longitude':longitude
+			}
+		}
+	);
 	user_collection.update({'username':fromUsername},{$set:{'ac_user':toUsername,'ac_latitude':latitude,'ac_longitude':longitude}});
 	res.send("OK");
 })
@@ -599,6 +616,101 @@ app
 			res.send("No");
 		}
 	});
+})
+.get('/places', function(req, res) {
+	var str = {"places":[
+	 {
+	   "name":"University Palms Apartments",
+	   "latitude":33.419241,
+	   "longitude":-111.919582
+	 },
+	 {
+	   "name":"FoxFire Apartment Homes",
+	   "latitude":33.418923,
+	   "longitude":-111.910703
+	 },
+	 {
+	   "name":"Desert Palm Village",
+	   "latitude":33.409197,
+	   "longitude":-111.920292
+	 },
+	 {
+	   "name":"12Fifty5 on University",
+	   "latitude":33.420529,
+	   "longitude":-111.918493
+	 },
+	 {
+	   "name":"Jack in the box",
+	   "latitude":33.422606,
+	   "longitude":-111.939653
+	 },
+	 {
+	   "name":"Starbucks",
+	   "latitude":33.425762,
+	   "longitude":-111.940372
+	 },
+	 {
+	   "name":"Amber Gardens",
+	   "latitude":33.428433,
+	   "longitude":-111.947947
+	 },
+	 {
+	   "name":"The Arbors at 5th Apartments",
+	   "latitude":33.426062,
+	   "longitude":-111.950543
+	 },
+	 {
+	   "name":"Potbelly",
+	   "latitude":33.409645,
+	   "longitude":-111.925995
+	 },
+	 {
+	   "name":"Thai Basil",
+	   "latitude":33.421483,
+	   "longitude":-111.944811
+	 },
+	 {
+	   "name":"ASU Noble Library",
+	   "latitude":33.419933,
+	   "longitude":-111.930649
+	 },
+	 {
+	   "name":"ASU Hayden Library",
+	   "latitude":33.418347,
+	   "longitude":-111.934147
+	 },
+	 {
+	   "name":"Rosas Mexican Grill",
+	   "latitude":33.423416,
+	   "longitude":-111.824074
+	 },
+	 {
+	   "name":"Four Peaks Brewing Company",
+	   "latitude":33.419643,
+	   "longitude":-111.916056
+	 },
+	 {
+	   "name":"Gus's New York Pizza",
+	   "latitude":33.421281,
+	   "longitude":-111.925843
+	 },
+	 {
+	   "name":"Wells Fargo Arena",
+	   "latitude":33.424505,
+	   "longitude":-111.931006
+	 },
+	 {
+	   "name":"Barrett, the Honors College",
+	   "latitude":33.415513,
+	   "longitude":-111.928374
+	 },
+	 {
+	   "name":"ASU Gammage",
+	   "latitude":33.416418,
+	   "longitude":-111.937826
+	 }
+	]};
+	res.send(str);
 })
 .listen(3000, '0.0.0.0', function() {
   console.log('Listening on port 3000');
